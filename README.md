@@ -1,116 +1,189 @@
-# FlyRank ML Internship — Starter Repo
+## Identifying Content Refresh Opportunities Using Low CTR and High Impressions ##
 
-**Applied Search Intelligence: Google Search Ranking & Discoverability**
+This repository contains my capstone research project completed during the FlyRank ML Internship.
 
-This is the starting point for the FlyRank ML Internship. You **clone it into your own public
-repo** (one click — *Use this template*), build everything there, and submit that repo URL on
-each assignment in your portal — it's your workspace, your submission, and your portfolio all
-at once. The rhythm is simple: do the work, commit it, submit on the card. Done.
+The project investigates a practical search-performance problem:
 
-Everything here runs on a small **anonymized** slice of real FlyRank search data. No credentials,
-no private client data, no setup headaches.
+Can content with high visibility but comparatively weak click-through rate be identified and prioritized for review using a transparent rule and machine-learning models?
 
-> **New here?** Two reads: **[SETUP.md](SETUP.md)** (GitHub, Colab, and data access — ten
-> minutes, with every silent pitfall flagged), then **[GUIDE.md](GUIDE.md)** (every file
-> explained, what to edit vs. leave alone, and where your own work goes — five minutes).
+The goal was not to automatically decide that a page must be refreshed. Instead, the project builds a decision-support workflow that helps narrow a large content portfolio into a smaller, ranked set of pages that deserve human review first.
 
----
+📄 [**Read the full research paper**](https://docs.google.com/document/d/19cTni1b_PkbfI8svMO3i6keGDtMc6eAa52-nBYIjfp8/edit?usp=sharing)
 
-## Quickstart — first win in 2 minutes
+The paper covers:
 
-The fastest path is Google Colab (one click, zero install). Open Notebook 1 and run all cells:
+research question and problem framing,
+data preparation and leakage prevention,
+baseline refresh-candidate rule,
+Logistic Regression, Decision Tree, and Random Forest models,
+time-aware train/test validation,
+permutation importance,
+error analysis,
+comparison of the original CTR rule with a position-aware alternative,
+ranked content-refresh recommendations.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/flyrank-bih/flyrank-ml-internship-starter/blob/main/notebooks/01_first_look_and_discovery.ipynb)
- **Week 1 — Run it, then discover a real truth yourself**
+**Project Summary**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/flyrank-bih/flyrank-ml-internship-starter/blob/main/notebooks/02_your_first_readable_model.ipynb)
- **Week 2 — The model is just a rule you can read**
+The baseline identifies potential refresh-review candidates using two conditions:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/flyrank-bih/flyrank-ml-internship-starter/blob/main/notebooks/03_working_with_the_full_release.ipynb)
- **Weeks 3+ — The full release (~79M rows) via DuckDB, no download needed** — hosted at
- [`FlyRank/internship-warehouse`](https://huggingface.co/datasets/FlyRank/internship-warehouse) (gated: request access + accept the data-use terms, approval is instant)
+relatively high search impressions, and
+relatively low click-through rate (CTR).
 
-### Prefer local?
+These conditions create a practical proxy label for content that may deserve review.
 
-```bash
-git clone <this-repo-url>
-cd flyrank-ml-internship-starter
-pip install -r requirements.txt          # or: uv pip install -r requirements.txt
-python scripts/run_all.py
-```
+Machine-learning models were then trained using other content-performance signals while excluding the variables directly used to construct the target label with permutation importance to understand "what does model mostly lean on" and error analysis to understand "where model is mostly giving wrong predictions".
 
-That runs the whole pipeline on the bundled sample and writes results to `outputs/`.
+The final workflow follows this structure:
 
----
+Problem framing
+      ↓
+Data preparation
+      ↓
+Baseline rule
+      ↓
+Feature selection and leakage checks
+      ↓
+Model training
+      ↓
+Time-aware validation
+      ↓
+Model interpretation
+      ↓
+Rule comparison
+      ↓
+Ranked refresh-review queue
 
-## What you get
+**Dataset**
 
-| Path | What it is |
-|---|---|
-| `notebooks/` | Week 1–2 **first-win notebooks** (Colab-ready). Start here. |
-| `scripts/01–05` + `run_all.py` | The runnable reference pipeline: prepare → baseline → train → evaluate → PDF. |
-| `data/raw/content_refresh_anonymized.csv` | The anonymized starter dataset (~30k pages). |
-| `outputs/` | Example outputs so you can see the **target shape** (`model_report.md`, `refresh_queue_sample.csv`, `charts/`). |
-| `work/` | **Your space.** Lane experiments and your capstone live here — see `work/README.md`. |
-| `docs/` | The core docs + the data dictionary (see below). |
+The analysis uses pseudonymized search and engagement data provided through the FlyRank ML Internship environment.
 
-### Read these (in `docs/`)
+The modeling experiment used a 30% stratified sample of approximately 3.5 million observations.
 
-1. **`ml-core-foundation-framework.md`** — the first-principles map of ML as a whole system. The backbone of the live sessions.
-2. **`ml-intern-dataset-and-lane-guide.md`** — how to use the data safely, the capstone workflow, and the analysis "lanes" you can pick from.
-3. **`intern-free-tooling-guide.md`** — the zero-budget tool stack (Python, Colab, free AI assistants). You never need to pay for anything.
-4. **`data-dictionary.md`** — all 44 columns: meaning, scale, and gotchas. Keep it open while you work.
+The study period covered:
 
----
+Training: June 1–24, 2026
+Testing: June 25–30, 2026
 
-## The pipeline (what `run_all.py` does)
+The split was deliberately time-aware so the models were trained on earlier observations and evaluated on later observations.
 
-```text
-01_prepare_features.py   clean + build the feature vector, define the label
-02_baseline_score.py     a transparent hand-rule "fix this first" score
-03_train_model.py        logistic regression, decision tree, random forest (client-holdout split)
-04_evaluate_and_export.py  ranked queue + charts + Markdown report
-05_build_pdf_report.py   a shareable PDF summary
-```
+No private client names, URLs, or search queries are included in the paper or repository.
 
-On the bundled sample, the learned model clearly beats the hand-written rule at picking the right
-pages to review first (**Precision@50 ≈ 0.24 → 0.74**; the model number can land 0.68–0.74
-depending on library versions — the ~3x lift is the point). The notebooks compute these numbers
-live, so they always reflect the current data and environment.
+**Models Evaluated**
 
-**Teaching point:** the model is the capstone, but the *workflow* is the lesson —
-`problem framing → data cleaning → baseline → first model → evaluation → explainable recommendation`.
+Three supervised classification models were compared for following purposes:
 
----
+Logistic Regression as	Simple linear benchmark
+Decision Tree as	Interpretable non-linear model
+Random Forest	Ensemble model for more complex patterns
 
-## Data safety (read `DATA_USE.md`)
+Evaluation included:
 
-- Only the small **anonymized** CSV ships here — no client names, domains, URLs, titles, or keywords.
-- **Never** add raw private client data to this repo or your fork. Need more data? Request an approved
-  release from your mentor — never export it yourself.
-- Don't paste client data into third-party AI tools.
-- Frame every result as **observed / measured / directional / decision-support** — never
-  "I predicted Google's algorithm."
+Accuracy
+Precision
+Recall
+F1 Score
+Weighted F1
+ROC-AUC
 
-The `.gitignore` blocks datasets by default, and CI fails any commit that includes a dataset.
+Because the positive class was imbalanced, SMOTE was applied only to the training data.
 
----
+**Key Findings**
 
-## Assignments & schedule
+The three models showed different strengths.
 
-Weekly assignments, live events, and the capstone live on **your portal board** (your
-enrollment email has your access link). This repo is the shared technical foundation they all
-build on — and the `skills/` folder here is the instruction library for your AI assistant
-(start at [skills/README.md](skills/README.md)).
+Random Forest achieved the strongest ROC-AUC.
+Logistic Regression achieved the strongest recall.
+Decision Tree performed competitively on several threshold-dependent metrics.
+Average ranking position was the strongest feature in the permutation-importance analysis.
+Upon Error Analysis to understand where model is mostly giving wrong predictions more False Positives were found.
+The original Global CTR Rule performed better than the FlyRank Position-Tier Rule in 12 of 15 model-metric comparisons.
+The final output was converted into a ranked review queue so that the highest-priority content could be reviewed first.
 
-**First time with GitHub?** You need exactly four things (full walkthrough: [SETUP.md](SETUP.md)):
-1. A free account at github.com.
-2. Your own copy of this repo: **Use this template → Create a new repository** → public.
-   (One click — brings the notebooks, `work/`, and the CI leak-guard with it.)
-3. In Colab: *File → Save a copy in GitHub* → pick your copy, branch `main` (Colab handles auth).
-4. That's your submission repo — share its **github.com/you/your-repo** URL with Assignment 1
-   (never a colab.research.google.com or drive.google.com link).
+These results should be interpreted as decision support, not proof that every flagged page requires a refresh.
 
----
+**Main Results**
 
-*Track leads: Mirza Ašćerić (ML) · Hole (data engineering). Code under MIT (see `LICENSE`); data under `DATA_USE.md`.*
+**Baseline Refresh Rule**
+
+The baseline rule identifies observations that combine relatively high impressions with comparatively low CTR.
+
+📊 [View Baseline Rule](https://github.com/abdullahnaeem151015-lgtm/ML-pipeline/blob/main/work/notebooks/Copy_of_w04_baseline_score%20(1).ipynb)
+
+**Model Development and Evaluation**
+
+Contains trained models like Logistic Regression, Decision Tree, Random Forest with time-aware validation, SMOTE, permutation importance, and error analysis.
+
+📊 [View Model Development Notebook](https://github.com/abdullahnaeem151015-lgtm/ML-pipeline/blob/main/work/notebooks/w05_model.ipynb)
+
+
+**Final Rule Comparison**
+
+The original Global CTR Rule was compared with the position-aware alternative across 15 model-metric combinations that gives following result:
+
+Previous Global CTR Rule: 12 wins
+FlyRank Position-Tier Rule: 3 wins
+
+📊 [View validation and rule-audit notebook](https://github.com/abdullahnaeem151015-lgtm/ML-pipeline/blob/main/work/notebooks/Copy_of_w06_validation_audit%20(2).ipynb)
+
+**Ranked Recommendations**
+
+The final signals were converted into a ranked review queue with:
+
+priority scores,
+reason codes,
+recommended actions.
+
+📊 [View ranked recommendation notebook](https://github.com/abdullahnaeem151015-lgtm/ML-pipeline/blob/main/work/notebooks/Copy_of_w07_action_playbook%20(1).ipynb)
+
+**Research Limitations**
+
+The refresh-candidate target is a proxy, not independently verified ground truth.
+
+A flagged page is therefore treated as:
+
+“worth reviewing”
+
+rather than:
+
+“definitely needs to be refreshed.”
+
+The study also does not claim that refreshing a flagged page will automatically improve CTR, traffic, or rankings.
+
+That would require post-refresh outcome data, controlled experiments, or independently verified human labels.
+
+Evaluation was conducted on a 30% stratified sample using a single time-based holdout period. Model performance has therefore not yet been demonstrated across multiple months, different seasonal conditions, or future data distributions.
+
+**Tech Stack**
+
+-Python
+-pandas
+-NumPy
+-scikit-learn
+-imbalanced-learn / SMOTE
+-Matplotlib
+-Seaborn
+-Jupyter / Google Colab
+-GitHub
+
+**Internship Context**
+
+This project was completed as part of the FlyRank ML Internship.
+
+FlyRank provided:
+
+the internship project framework,
+access to pseudonymized search-performance data,
+the technical starter repository,
+the capstone workflow.
+
+The analysis, model development, validation, rule comparison, and research paper were completed as part of my internship capstone.
+
+Data usage follows the repository's DATA_USE.md requirements.
+
+**Author:** Abdullah Naeem
+
+BS Computer Science Student,
+
+Aspiring Machine Learning Engineer / Data Scientist,
+
+[**LINKEDIN**](https://www.linkedin.com/in/abdullah-naeem-736103325/)
